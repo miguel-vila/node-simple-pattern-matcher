@@ -1,9 +1,3 @@
-/*
-
-var matcher = new Matcher({a: 1, b: 2, c: { d: 3, e: {f:4, g:5}, h: 6}, i: { j: 7 } });
-matcher.case("{a:_,c:{d:_},i:_}", function(a,c,i){ return a*c+i; });
-*/
-
 var assert = require("assert");
 var Matcher = require("../index.js");
 var _ = true;
@@ -118,22 +112,54 @@ describe('PatternMatcher', function(){
 			var correctlyNotCalled2 = true;
 			var correctlyNotCalled3 = true;
 			var correctlyCalled = false;
-			var fm = matcher.
-			case('{a:_,b:{ d:{e:_}, f:_},g:{h:_},x:_,z:_}',function(){
-				correctlyNotCalled1 = false;
-			}).
-			case('{a:_,b:{ d:{e:_}, f:_},g:{h:_}}',function(a,b,g){
-				assert.deepEqual(object.a, a);
-				assert.deepEqual(object.b, b);
-				assert.deepEqual(object.g, g);
-				correctlyCalled = true;
-			}).
-			case('{a:_,b:_}',function(a,b){
-				correctlyNotCalled2 = false;
-			}).
-			case('{a:_,b:_,z:_}',function(a,b){
-				correctlyNotCalled3 = false;
-			});
+			matcher.
+				case('{a:_,b:{ d:{e:_}, f:_},g:{h:_},x:_,z:_}',function(){
+					correctlyNotCalled1 = false;
+				}).
+				case('{a:_,b:{ d:{e:_}, f:_},g:{h:_}}',function(a,b,g){
+					assert.deepEqual(object.a, a);
+					assert.deepEqual(object.b, b);
+					assert.deepEqual(object.g, g);
+					correctlyCalled = true;
+				}).
+				case('{a:_,b:_}',function(a,b){
+					correctlyNotCalled2 = false;
+				}).
+				case('{a:_,b:_,z:_}',function(a,b){
+					correctlyNotCalled3 = false;
+				});
+			assert(correctlyNotCalled1,'A first incorrect case was incorrectly called');
+			assert(correctlyCalled,'The first matching case was not called');
+			assert(correctlyNotCalled2,'A later correct case was incorrectly called');
+			assert(correctlyNotCalled3,'A later incorrect case was incorrectly called');
+		});
+	});
+	describe('#done', function(){
+		it('should return the computed value by the callback', function () {
+			var object = {a: 1, b: { c: 4, d: { e: 5 } , f: 6 }, g: { h: 7, i: 8}};
+			var matcher = new Matcher(object);
+			var correctlyNotCalled1 = true;
+			var correctlyNotCalled2 = true;
+			var correctlyNotCalled3 = true;
+			var correctlyCalled = false;
+			var result = matcher.
+				case('{a:_,b:{ d:{e:_}, f:_},g:{h:_},x:_,z:_}',function(){
+					correctlyNotCalled1 = false;
+					return 1;
+				}).
+				case('{a:_,b:{ d:{e:_}, f:_},g:{h:_}}',function(a,b,g){
+					correctlyCalled = true;
+					return 2;
+				}).
+				case('{a:_,b:_}',function(a,b){
+					correctlyNotCalled2 = false;
+					return 3;
+				}).
+				case('{a:_,b:_,z:_}',function(a,b){
+					correctlyNotCalled3 = false;
+					return 4;
+				}).done();
+			assert.equal(2,result,"The incorrect function was called");
 			assert(correctlyNotCalled1,'A first incorrect case was incorrectly called');
 			assert(correctlyCalled,'The first matching case was not called');
 			assert(correctlyNotCalled2,'A later correct case was incorrectly called');
